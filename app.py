@@ -7,6 +7,7 @@ import requests
 import time
 from dotenv import load_dotenv
 import logging
+from openai import OpenAI
 
 # --- App Configuration ---
 load_dotenv()
@@ -18,15 +19,20 @@ app.config['SECRET_KEY'] = os.urandom(24)
 logging.basicConfig(level=logging.INFO)
 
 # --- API Configurations ---
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
-if GEMINI_API_KEY:
-    logging.info("Successfully loaded GEMINI_API_KEY.")
+# We will now use the OPENAI_API_KEY for both services.
+# The GEMINI_API_KEY is no longer necessary if you use OpenAI for analysis.
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+if OPENAI_API_KEY:
+    logging.info("Successfully loaded OPENAI_API_KEY.")
 else:
-    logging.error("Failed to load GEMINI_API_KEY. Check .env file and service configuration.")
+    logging.error("Failed to load OPENAI_API_KEY. Check .env file.")
 
-TTS_API_KEY = os.getenv('TTS_API_KEY')
-GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
-TTS_API_URL = 'http://api.voicerss.org/'
+# The following are no longer used if OpenAI is used for both services.
+# GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+# TTS_API_KEY = os.getenv('TTS_API_KEY')
+# GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
+# TTS_API_URL = 'http://api.voicerss.org/'
+
 AUDIO_CACHE_DIR = 'static/audio_cache'
 MAX_RETRIES = 3
 TIMEOUT = 60
@@ -96,23 +102,29 @@ def get_word_analysis(word, template_content, force_reanalyze=False):
         if cached:
             return cached['analysis'], None
 
-    if not GEMINI_API_KEY:
-        return None, "GEMINI_API_KEY is not set."
+    if not OPENAI_API_KEY:
+        return None, "OPENAI_API_KEY is not set."
 
+    client = OpenAI(api_key=OPENAI_API_KEY)
     prompt = f"请分析单词 \"{word}\"，按照以下结构输出（保持markdown格式）：\n\n{template_content}"
-    data = {"contents": [{"parts": [{"text": prompt}]}]}
     
     for _ in range(MAX_RETRIES):
         try:
-            response = requests.post(f"{GEMINI_API_URL}?key={GEMINI_API_KEY}", headers={'Content-Type': 'application/json'}, json=data, timeout=TIMEOUT)
-            response.raise_for_status()
-            result = response.json()
-            analysis_text = result['candidates'][0]['content']['parts'][0]['text']
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo", # Or "gpt-4" if you prefer higher quality
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant that analyzes vocabulary words in Markdown format."},
+                    {"role": "user", "content": prompt}
+                ],
+                timeout=TIMEOUT
+            )
+            analysis_text = response.choices[0].message.content
             # Simple clean up
             analysis_text = re.sub(r'^好的，这是对.*?的词源分析：\s*', '', analysis_text, flags=re.IGNORECASE)
             analysis_text = re.sub(r'^#\s*.*\s*', '', analysis_text).strip()
             return analysis_text, None
-        except requests.exceptions.RequestException as e:
+        except Exception as e:
+            logging.error(f"OpenAI analysis request failed: {e}")
             time.sleep(1)
     return None, f"API request failed after {MAX_RETRIES} retries."
 
@@ -167,8 +179,11 @@ def reanalyze():
 @app.route('/tts', methods=['GET'])
 def tts():
     word = request.args.get('word')
-    if not word: return jsonify({"error": "No word provided"}), 400
-    if not TTS_API_KEY: return jsonify({"error": "TTS service not configured"}), 503
+    if not word: 
+        return jsonify({"error": "No word provided"}), 400
+    
+    if not OPENAI_API_KEY:
+        return jsonify({"error": "OpenAI TTS service not configured"}), 503
 
     filename = "".join(c for c in word if c.isalnum()) + '.mp3'
     filepath = os.path.join(AUDIO_CACHE_DIR, filename)
@@ -176,17 +191,22 @@ def tts():
     if os.path.exists(filepath):
         return send_from_directory(AUDIO_CACHE_DIR, filename)
 
-    params = {'key': TTS_API_KEY, 'src': word, 'hl': 'en-us', 'c': 'MP3', 'f': '8khz_8bit_mono'}
     try:
-        response = requests.get(TTS_API_URL, params=params, timeout=20)
-        response.raise_for_status()
-        if response.text.startswith('ERROR'): raise Exception(response.text)
+        client = OpenAI(api_key=OPENAI_API_KEY)
+        response = client.audio.speech.create(
+            model="tts-1",
+            voice="alloy",
+            input=word
+        )
         
-        with open(filepath, 'wb') as f:
-            f.write(response.content)
+        # Stream the audio to the file
+        response.stream_to_file(filepath)
+        
         return send_from_directory(AUDIO_CACHE_DIR, filename)
     except Exception as e:
-        return jsonify({"error": f"TTS generation failed: {e}"}), 500
+        # Log the actual error for debugging
+        logging.error(f"OpenAI TTS generation failed for word '{word}': {e}")
+        return jsonify({"error": f"TTS generation failed"}), 500
 
 # --- API Routes for Template Management ---
 @app.route('/api/templates', methods=['GET'])
