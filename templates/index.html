@@ -6,6 +6,9 @@
     <title>Vocabulary Analysis</title>
     <link rel="icon" href="/static/favicon.ico" sizes="any">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
@@ -14,6 +17,9 @@
             font-family: 'Inter', sans-serif; /* You can set this in tailwind.config.js */
             overflow: hidden; /* Prevent body scrolling */
         }
+        .font-chinese-style {
+            font-family: 'ZCOOL XiaoWei', sans-serif;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans leading-relaxed">
@@ -21,7 +27,7 @@
     <nav class="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-200/80 sticky top-0 z-30">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-3">
-                <a id="home-link" class="text-xl font-bold text-gray-800 cursor-pointer">Advanced Vocabulary Analysis</a>
+                <a id="home-link" class="text-3xl font-bold cursor-pointer font-chinese-style bg-gradient-to-r from-blue-600 to-fuchsia-500 bg-clip-text text-transparent">周周小妞单词计划</a>
                 <div class="relative" id="template-dropdown-container">
                     <button id="manageTemplatesBtn" class="flex items-center justify-center px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">
                         <span>Manage Templates</span>
