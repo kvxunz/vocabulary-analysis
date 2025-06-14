@@ -19,7 +19,7 @@
     <nav class="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-200/80 sticky top-0 z-30">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-3">
-                <a class="text-xl font-bold text-gray-800" href="#">Vocabulary Analysis</a>
+                <a id="home-link" class="text-xl font-bold text-gray-800" href="#">Advanced Vocabulary Analysis</a>
                 <div class="relative" id="template-dropdown-container">
                     <button id="manageTemplatesBtn" class="flex items-center justify-center px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">
                         <span>Manage Templates</span>
@@ -146,6 +146,7 @@
         const wordListContainer = document.getElementById('word-list-container');
         const analysisCol = document.getElementById('analysis-col');
         const analysisContainer = document.getElementById('analysis-container');
+        const homeLink = document.getElementById('home-link');
         
         const templateDropdownContainer = document.getElementById('template-dropdown-container');
         const templateDropdownMenu = document.getElementById('template-dropdown-menu');
@@ -176,6 +177,8 @@
         let currentCategoryIndex = null;
         let activeTemplateId = null;
 
+        const initialAnalysisHTML = analysisContainer.innerHTML;
+
         function showToast(title, body, isError = false) {
             document.getElementById('toastTitle').textContent = title;
             document.getElementById('toastBody').textContent = body;
@@ -192,6 +195,28 @@
                 toastHeader.classList.add('border-gray-200');
             }
             appToast.show();
+        }
+
+        function resetToInitialState() {
+            // 1. Hide word list
+            wordListCol.classList.add('hidden');
+
+            // 2. Reset category column width
+            categoriesCol.classList.remove('lg:w-[200px]');
+            categoriesCol.classList.add('lg:w-[280px]');
+
+            // 3. Reset analysis container
+            analysisContainer.innerHTML = initialAnalysisHTML;
+
+            // 4. De-select active category button
+            document.querySelectorAll('#vocabularyAccordion button').forEach(btn => {
+                btn.classList.remove('bg-blue-500', 'text-white', 'shadow-md', 'border-blue-500');
+                btn.classList.add('bg-white', 'text-gray-700', 'border-gray-200');
+            });
+
+            // 5. Reset state variables
+            currentCategoryIndex = null;
+            currentWord = null;
         }
 
         function resetAnalysisView() {
@@ -480,6 +505,11 @@
             }
         });
         // --- End New Modal Close Logic ---
+
+        homeLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetToInitialState();
+        });
 
         refreshTemplateList();
         // Add a simple transition to toast
