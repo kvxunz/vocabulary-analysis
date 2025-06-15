@@ -45,11 +45,19 @@
         .font-chinese-style {
             font-family: 'ZCOOL XiaoWei', sans-serif;
         }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans leading-relaxed transition-colors duration-300">
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans leading-relaxed transition-colors duration-300 h-screen flex flex-col">
 
-    <nav class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-sm border-b border-gray-200/80 dark:border-gray-700/80 sticky top-0 z-30">
+    <nav class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-sm border-b border-gray-200/80 dark:border-gray-700/80 z-30">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-3">
                 <a id="home-link" class="text-3xl font-bold cursor-pointer font-chinese-style bg-gradient-to-r from-blue-600 to-fuchsia-500 bg-clip-text text-transparent">周周小妞单词计划</a>
@@ -76,12 +84,12 @@
         </div>
     </nav>
 
-    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="flex flex-col lg:flex-row gap-6 justify-center" data-units='{{ units|tojson|safe }}'>
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 min-h-0">
+        <div class="flex flex-col lg:flex-row gap-6 justify-center h-full" data-units='{{ units|tojson|safe }}'>
             
             <!-- Left Column: Categories -->
             <div id="categories-col" class="lg:w-[280px] lg:flex-shrink-0 transition-all duration-300 ease-in-out">
-                <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg h-full max-h-[calc(100vh-120px)] overflow-y-auto">
+                <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg h-full overflow-y-auto no-scrollbar">
                     <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4 px-2">Categories</h2>
                     <div class="space-y-2" id="vocabularyAccordion">
                         {% for unit in units %}
@@ -96,20 +104,22 @@
             </div>
 
             <!-- Middle Column: Word List -->
-            <div id="word-list-col" class="lg:w-[380px] lg:flex-shrink-0 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg h-full max-h-[calc(100vh-120px)] overflow-y-auto transition-all duration-300 ease-in-out hidden">
-                 <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4 px-2">Words</h2>
-                <div id="word-list-container" class="space-y-2">
-                     <div class="flex flex-col items-center justify-center h-full text-center text-gray-400 dark:text-gray-500">
-                        <svg class="w-12 h-12 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
-                        <p class="text-sm">Select a category to see words.</p>
+            <div id="word-list-col" class="lg:w-[380px] lg:flex-shrink-0 transition-all duration-300 ease-in-out hidden">
+                <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg h-full overflow-y-auto no-scrollbar flex flex-col">
+                    <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4 px-2 flex-shrink-0">Words</h2>
+                    <div id="word-list-container" class="space-y-2 flex-grow overflow-y-auto no-scrollbar -mr-4 pr-4">
+                        <div class="flex flex-col items-center justify-center h-full text-center text-gray-400 dark:text-gray-500">
+                            <svg class="w-12 h-12 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                            <p class="text-sm">Select a category to see words.</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Right Column: Analysis -->
             <div id="analysis-col" class="flex-1 min-w-0">
-                <div class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg h-full max-h-[calc(100vh-120px)] overflow-y-auto">
-                    <div class="analysis-container" id="analysis-container">
+                <div class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg h-full overflow-y-auto no-scrollbar">
+                    <div class="analysis-container no-scrollbar" id="analysis-container">
                         <div class="flex flex-col items-center justify-center h-full text-center">
                             <svg class="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                             <h3 class="text-lg font-medium text-gray-600 dark:text-gray-400">Select a category</h3>
