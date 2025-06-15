@@ -1,45 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vocabulary Analysis</title>
+    <title>周周小妞单词计划</title>
     <link rel="icon" href="/static/favicon.ico" sizes="any">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // On page load or when changing themes, best to add inline in `head` to avoid FOUC
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         /* This style block will be removed or significantly reduced as we migrate to Tailwind */
-        body {
-            font-family: 'Inter', sans-serif; /* You can set this in tailwind.config.js */
-            overflow: hidden; /* Prevent body scrolling */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid #3498db;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 20px auto;
         }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .font-chinese-style {
             font-family: 'ZCOOL XiaoWei', sans-serif;
         }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800 font-sans leading-relaxed">
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans leading-relaxed transition-colors duration-300">
 
-    <nav class="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-200/80 sticky top-0 z-30">
+    <nav class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-sm border-b border-gray-200/80 dark:border-gray-700/80 sticky top-0 z-30">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-3">
                 <a id="home-link" class="text-3xl font-bold cursor-pointer font-chinese-style bg-gradient-to-r from-blue-600 to-fuchsia-500 bg-clip-text text-transparent">周周小妞单词计划</a>
-                <div class="relative" id="template-dropdown-container">
-                    <button id="manageTemplatesBtn" class="flex items-center justify-center px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">
-                        <span>Manage Templates</span>
-                        <svg class="w-5 h-5 ml-2 -mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
-                    <div id="template-dropdown-menu" class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none hidden z-10" role="menu" aria-orientation="vertical" aria-labelledby="manageTemplatesBtn">
-                        <div class="py-1" role="none" id="templateList">
-                            <!-- Content will be populated by JS -->
+                <div class="flex items-center space-x-4">
+                    <div class="relative" id="template-dropdown-container">
+                        <button id="manageTemplatesBtn" class="flex items-center justify-center px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">
+                            <span>Manage Templates</span>
+                            <svg class="w-5 h-5 ml-2 -mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <div id="template-dropdown-menu" class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none hidden z-10" role="menu" aria-orientation="vertical" aria-labelledby="manageTemplatesBtn">
+                            <div class="py-1" role="none" id="templateList">
+                                <!-- Content will be populated by JS -->
+                            </div>
                         </div>
                     </div>
+                    <button id="theme-toggle" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
+                        <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                        <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+                    </button>
                 </div>
             </div>
         </div>
@@ -50,12 +75,12 @@
             
             <!-- Left Column: Categories -->
             <div id="categories-col" class="lg:w-[280px] lg:flex-shrink-0 transition-all duration-300 ease-in-out">
-                <div class="bg-white p-4 rounded-xl shadow-lg h-full max-h-[calc(100vh-120px)] overflow-y-auto">
-                    <h2 class="text-lg font-semibold text-gray-700 mb-4 px-2">Categories</h2>
+                <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg h-full max-h-[calc(100vh-120px)] overflow-y-auto">
+                    <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4 px-2">Categories</h2>
                     <div class="space-y-2" id="vocabularyAccordion">
                         {% for unit in units %}
                         <div>
-                            <button class="w-full text-center px-4 py-3 bg-white hover:bg-blue-50 border border-gray-200 text-gray-700 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400" data-unit-index="{{ loop.index0 }}">
+                            <button class="w-full text-center px-4 py-3 bg-white dark:bg-gray-700 hover:bg-blue-50 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400" data-unit-index="{{ loop.index0 }}">
                                 {{ unit.title }}
                             </button>
                         </div>
@@ -65,10 +90,10 @@
             </div>
 
             <!-- Middle Column: Word List -->
-            <div id="word-list-col" class="lg:w-[380px] lg:flex-shrink-0 bg-white p-4 rounded-xl shadow-lg h-full max-h-[calc(100vh-120px)] overflow-y-auto transition-all duration-300 ease-in-out hidden">
-                 <h2 class="text-lg font-semibold text-gray-700 mb-4 px-2">Words</h2>
+            <div id="word-list-col" class="lg:w-[380px] lg:flex-shrink-0 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg h-full max-h-[calc(100vh-120px)] overflow-y-auto transition-all duration-300 ease-in-out hidden">
+                 <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4 px-2">Words</h2>
                 <div id="word-list-container" class="space-y-2">
-                     <div class="flex flex-col items-center justify-center h-full text-center text-gray-400">
+                     <div class="flex flex-col items-center justify-center h-full text-center text-gray-400 dark:text-gray-500">
                         <svg class="w-12 h-12 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
                         <p class="text-sm">Select a category to see words.</p>
                     </div>
@@ -77,12 +102,12 @@
 
             <!-- Right Column: Analysis -->
             <div id="analysis-col" class="flex-1 min-w-0">
-                <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg h-full max-h-[calc(100vh-120px)] overflow-y-auto">
+                <div class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg h-full max-h-[calc(100vh-120px)] overflow-y-auto">
                     <div class="analysis-container" id="analysis-container">
                         <div class="flex flex-col items-center justify-center h-full text-center">
-                            <svg class="w-16 h-16 text-gray-300 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-                            <h3 class="text-lg font-medium text-gray-600">Select a category</h3>
-                            <p class="text-sm text-gray-500">Choose a category from the left panel to view the list of words.</p>
+                            <svg class="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                            <h3 class="text-lg font-medium text-gray-600 dark:text-gray-400">Select a category</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-500">Choose a category from the left panel to view the list of words.</p>
                         </div>
                     </div>
                 </div>
@@ -94,10 +119,10 @@
     <!-- Template Management Modal -->
     <div id="templateModal" class="fixed inset-0 bg-gray-900 bg-opacity-60 overflow-y-auto h-full w-full hidden z-40 flex items-center justify-center">
         <div class="relative mx-auto p-2 border w-full max-w-2xl">
-            <div class="bg-white rounded-xl shadow-2xl">
-                <div class="flex justify-between items-center p-5 border-b border-gray-200">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900" id="templateModalLabel">Template</h3>
-                    <button id="closeTemplateModalBtn" class="p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl">
+                <div class="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100" id="templateModalLabel">Template</h3>
+                    <button id="closeTemplateModalBtn" class="p-2 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
@@ -105,21 +130,21 @@
                     <form id="templateForm" class="text-left">
                         <input type="hidden" id="templateId">
                         <div class="mb-4">
-                            <label for="templateName" class="block text-sm font-medium text-gray-700">Template Name</label>
-                            <input type="text" id="templateName" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                            <label for="templateName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Template Name</label>
+                            <input type="text" id="templateName" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 dark:text-gray-100" required>
                         </div>
                         <div>
-                            <label for="templateContent" class="block text-sm font-medium text-gray-700">Template Content</label>
-                            <textarea id="templateContent" rows="10" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm font-mono" required></textarea>
+                            <label for="templateContent" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Template Content</label>
+                            <textarea id="templateContent" rows="10" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm font-mono text-gray-900 dark:text-gray-100" required></textarea>
                         </div>
                     </form>
                 </div>
-                <div class="px-6 py-4 bg-gray-50 rounded-b-xl flex justify-between items-center">
+                <div class="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 rounded-b-xl flex justify-between items-center">
                     <button id="deleteTemplateBtn" class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
                         Delete
                     </button>
                     <div class="space-x-2">
-                        <button id="cancelTemplateModalBtn" class="px-4 py-2 bg-white text-gray-700 border border-gray-300 text-sm font-medium rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <button id="cancelTemplateModalBtn" class="px-4 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             Cancel
                         </button>
                         <button id="saveTemplateBtn" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
@@ -133,25 +158,35 @@
 
     <!-- Toast for notifications -->
     <div class="fixed bottom-5 right-5 z-50">
-      <div id="appToast" class="bg-white shadow-lg rounded-lg hidden max-w-sm w-full">
-        <div class="flex justify-between items-center px-4 py-2 border-b rounded-t-lg">
-          <strong id="toastTitle">Notification</strong>
-          <button type="button" class="text-gray-500 hover:text-gray-800" data-bs-dismiss="toast" aria-label="Close">
+      <div id="appToast" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg hidden max-w-sm w-full border border-gray-200 dark:border-gray-700">
+        <div class="flex justify-between items-center px-4 py-2 border-b rounded-t-lg border-gray-200 dark:border-gray-700">
+          <strong id="toastTitle" class="text-gray-900 dark:text-gray-100">Notification</strong>
+          <button type="button" class="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white" data-bs-dismiss="toast" aria-label="Close">
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" fill-rule="evenodd"></path></svg>
           </button>
         </div>
-        <div class="p-4" id="toastBody"></div>
+        <div id="toastBody" class="p-4 text-gray-800 dark:text-gray-200"></div>
       </div>
     </div>
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         const dataContainer = document.querySelector('[data-units]');
-        const unitsData = JSON.parse(dataContainer.dataset.units);
+        let unitsData = [];
+        if (dataContainer && dataContainer.dataset.units) {
+            try {
+                unitsData = JSON.parse(dataContainer.dataset.units);
+            } catch (e) {
+                console.error("Error parsing units data:", e);
+            }
+        }
+        
+        let currentWord = null;
+        let activeTemplateId = null;
+        let isResizing = false;
 
         const categoriesCol = document.getElementById('categories-col');
         const wordListCol = document.getElementById('word-list-col');
-        const wordListContainer = document.getElementById('word-list-container');
         const analysisCol = document.getElementById('analysis-col');
         const analysisContainer = document.getElementById('analysis-container');
         const homeLink = document.getElementById('home-link');
@@ -163,30 +198,52 @@
 
         const templateModalEl = document.getElementById('templateModal');
         const toastEl = document.getElementById('appToast');
+
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+        const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+
+        // 初始化主题和图标
+        function setThemeIcon() {
+            if (document.documentElement.classList.contains('dark')) {
+                themeToggleDarkIcon.classList.add('hidden');
+                themeToggleLightIcon.classList.remove('hidden');
+            } else {
+                themeToggleLightIcon.classList.add('hidden');
+                themeToggleDarkIcon.classList.remove('hidden');
+            }
+        }
+        // 页面加载时根据localStorage设置主题
+        if (localStorage.getItem('color-theme') === 'dark' ||
+            (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        setThemeIcon();
+
+        themeToggleBtn.addEventListener('click', function() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('color-theme', isDark ? 'dark' : 'light');
+            setThemeIcon();
+        });
+
         let appToast = { // temporary toast replacement
             show: () => {
-                toastEl.style.transform = 'translateX(0)';
-                toastEl.style.opacity = '1';
                 toastEl.classList.remove('hidden');
-                setTimeout(() => {
-                    toastEl.style.transform = 'translateX(100%)';
-                    toastEl.style.opacity = '0';
-                    setTimeout(() => toastEl.classList.add('hidden'), 300);
-                }, 3000);
+                toastEl.style.opacity = '1';
+                toastEl.style.transform = 'translateX(0)';
+                setTimeout(() => appToast.hide(), 3000);
             },
             hide: () => {
-                toastEl.style.transform = 'translateX(100%)';
                 toastEl.style.opacity = '0';
+                toastEl.style.transform = 'translateX(100%)';
                 setTimeout(() => toastEl.classList.add('hidden'), 300);
             }
         };
 
-        let currentWord = null;
-        let currentCategoryIndex = null;
-        let activeTemplateId = null;
-
-        const initialAnalysisHTML = analysisContainer.innerHTML;
-
+        toastEl.querySelector('[data-bs-dismiss="toast"]').addEventListener('click', () => appToast.hide());
+        
         function showToast(title, body, isError = false) {
             document.getElementById('toastTitle').textContent = title;
             document.getElementById('toastBody').textContent = body;
@@ -194,70 +251,78 @@
 
             toastEl.classList.remove('bg-red-100', 'border-red-500', 'bg-white', 'border-gray-200');
             toastHeader.classList.remove('border-red-200', 'border-gray-200');
+            toastEl.classList.remove('dark:bg-red-900/50', 'dark:border-red-700', 'dark:bg-gray-800', 'dark:border-gray-700');
+            toastHeader.classList.remove('dark:border-red-800', 'dark:border-gray-700');
+
 
             if (isError) {
-                toastEl.classList.add('bg-red-100', 'border-red-500');
-                toastHeader.classList.add('border-red-200');
+                toastEl.classList.add('bg-red-100', 'border-red-500', 'dark:bg-red-900/50', 'dark:border-red-700');
+                toastHeader.classList.add('border-red-200', 'dark:border-red-800');
             } else {
-                toastEl.classList.add('bg-white', 'border-gray-200');
-                toastHeader.classList.add('border-gray-200');
+                toastEl.classList.add('bg-white', 'border-gray-200', 'dark:bg-gray-800', 'dark:border-gray-700');
+                toastHeader.classList.add('border-gray-200', 'dark:border-gray-700');
             }
             appToast.show();
         }
 
         function resetToInitialState() {
-            // 1. Hide word list
+            // 1. Hide word list and analysis
             wordListCol.classList.add('hidden');
-
-            // 2. Reset category column width
-            categoriesCol.classList.remove('lg:w-[200px]');
-            categoriesCol.classList.add('lg:w-[280px]');
-
+            // analysisCol.classList.add('hidden');
+            // 2. Show categories
+            categoriesCol.classList.remove('hidden');
             // 3. Reset analysis container
-            analysisContainer.innerHTML = initialAnalysisHTML;
-
+            analysisContainer.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-center">
+                            <svg class="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                            <h3 class="text-lg font-medium text-gray-600 dark:text-gray-400">Select a category</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-500">Choose a category from the left panel to view the list of words.</p>
+                        </div>`;
             // 4. De-select active category button
             document.querySelectorAll('#vocabularyAccordion button').forEach(btn => {
                 btn.classList.remove('bg-blue-500', 'text-white', 'shadow-md', 'border-blue-500');
                 btn.classList.add('bg-white', 'text-gray-700', 'border-gray-200');
+                btn.classList.remove('dark:bg-blue-600', 'dark:text-white', 'dark:border-blue-600');
+                btn.classList.add('dark:bg-gray-700', 'dark:text-gray-300', 'dark:border-gray-600');
             });
 
             // 5. Reset state variables
-            currentCategoryIndex = null;
             currentWord = null;
         }
 
         function resetAnalysisView() {
-            analysisContainer.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-center text-gray-500">
-                            <svg class="w-16 h-16 text-gray-300 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+            analysisContainer.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-center text-gray-500 dark:text-gray-400">
+                            <svg class="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
                             <h3 class="text-lg font-medium">Select a word</h3>
                             <p class="text-sm">Choose a word from the list to see its analysis.</p>
                         </div>`;
             currentWord = null;
         }
-        
-        function displayWordList(unitIndex) {
-            if (currentCategoryIndex === unitIndex && !wordListCol.classList.contains('hidden')) return;
-            
-            currentCategoryIndex = unitIndex;
 
+        function selectUnit(unitIndex) {
             // --- DYNAMIC LAYOUT LOGIC ---
-            // On first interaction, reveal the words column and shrink categories.
-            wordListCol.classList.remove('hidden');
-            if (categoriesCol.classList.contains('lg:w-[280px]')) {
-                 categoriesCol.classList.remove('lg:w-[280px]');
-                 categoriesCol.classList.add('lg:w-[200px]');
+            // On screens larger than lg, all columns are visible
+            // On smaller screens, we hide the category list and show the word list
+            if (window.innerWidth < 1024) { 
+                categoriesCol.classList.add('hidden');
+                wordListCol.classList.remove('hidden');
+            } else {
+                wordListCol.classList.remove('hidden');
+                analysisCol.classList.remove('hidden');
             }
             // --- END DYNAMIC LAYOUT LOGIC ---
 
             document.querySelectorAll('#vocabularyAccordion button').forEach(btn => {
                 btn.classList.remove('bg-blue-500', 'text-white', 'shadow-md', 'border-blue-500');
                 btn.classList.add('bg-white', 'text-gray-700', 'border-gray-200');
+                btn.classList.remove('dark:bg-blue-600', 'dark:text-white', 'dark:border-blue-600');
+                btn.classList.add('dark:bg-gray-700', 'dark:text-gray-300', 'dark:border-gray-600');
             });
             const activeButton = document.querySelector(`button[data-unit-index="${unitIndex}"]`);
             if (activeButton) {
                 activeButton.classList.add('bg-blue-500', 'text-white', 'shadow-md', 'border-blue-500');
                 activeButton.classList.remove('bg-white', 'text-gray-700', 'border-gray-200');
+                activeButton.classList.add('dark:bg-blue-600', 'dark:text-white', 'dark:border-blue-600');
+                activeButton.classList.remove('dark:bg-gray-700', 'dark:text-gray-300', 'dark:border-gray-600');
             }
 
             const unit = unitsData[unitIndex];
@@ -266,10 +331,12 @@
             unit.groups.forEach(group => {
                 wordListHTML += '<div class="flex flex-nowrap gap-2 mb-2 pb-2 overflow-x-auto">';
                 group.forEach(word => {
-                    wordListHTML += `<span class="word-item flex-shrink-0 cursor-pointer px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-blue-100 hover:text-blue-800 transition-all" data-word="${word}">${word}</span>`;
+                    wordListHTML += `<span class="word-item flex-shrink-0 cursor-pointer px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm font-medium hover:bg-blue-100 dark:hover:bg-blue-900 hover:text-blue-800 dark:hover:text-blue-200 transition-all" data-word="${word}">${word}</span>`;
                 });
                 wordListHTML += '</div>';
             });
+
+            const wordListContainer = document.getElementById('word-list-container');
             wordListContainer.innerHTML = wordListHTML;
 
             resetAnalysisView();
@@ -278,13 +345,13 @@
         function showSkeletonLoader() {
             analysisContainer.innerHTML = `
                 <div class="animate-pulse">
-                    <div class="h-8 bg-gray-300 rounded w-1/3 mb-4"></div>
+                    <div class="h-8 bg-gray-300 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
                     <div class="space-y-4">
-                        <div class="h-4 bg-gray-300 rounded w-1/4"></div>
-                        <div class="h-4 bg-gray-300 rounded"></div>
-                        <div class="h-4 bg-gray-300 rounded w-5/6"></div>
-                        <div class="h-4 bg-gray-300 rounded w-1/4 mt-6"></div>
-                        <div class="h-4 bg-gray-300 rounded"></div>
+                        <div class="h-4 bg-gray-300 dark:bg-gray-700 rounded w-1/4"></div>
+                        <div class="h-4 bg-gray-300 dark:bg-gray-700 rounded"></div>
+                        <div class="h-4 bg-gray-300 dark:bg-gray-700 rounded w-5/6"></div>
+                        <div class="h-4 bg-gray-300 dark:bg-gray-700 rounded w-1/4 mt-6"></div>
+                        <div class="h-4 bg-gray-300 dark:bg-gray-700 rounded"></div>
                     </div>
                 </div>`;
         }
@@ -292,36 +359,41 @@
         function displayAnalysis(word, htmlContent) {
             currentWord = word;
             analysisContainer.innerHTML = `
-                <div class="flex justify-between items-center border-b border-gray-200 pb-4 mb-6">
-                    <h1 class="text-3xl font-bold text-gray-900 tracking-tight">${word.toUpperCase()}</h1>
+                <div class="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-4 mb-6">
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">${word.toUpperCase()}</h1>
                     <div class="flex items-center space-x-1">
-                        <button id="play-pronunciation-btn" title="Play pronunciation" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-blue-500 transition-colors">
+                        <button id="play-pronunciation-btn" title="Play pronunciation" class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-500 transition-colors">
                             <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
                         </button>
-                        <button id="reanalyze-btn" title="Re-analyze word" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-blue-500 transition-colors">
+                        <button id="reanalyze-btn" title="Re-analyze word" class="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-500 transition-colors">
                             <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
                         </button>
                     </div>
                 </div>
-                <div class="prose prose-indigo max-w-none">${htmlContent}</div>`;
+                <div class="prose prose-indigo max-w-none dark:prose-invert">${htmlContent}</div>`;
             
-            // This is a basic way to style markdown content with Tailwind. For better results, you might need a plugin like @tailwindcss/typography.
             const proseContainer = analysisContainer.querySelector('.prose');
-            proseContainer.querySelectorAll('h3').forEach(h3 => h3.classList.add('text-xl', 'font-semibold', 'mt-6', 'mb-3', 'border-b', 'pb-2', 'border-gray-200'));
-            proseContainer.querySelectorAll('p, li').forEach(el => el.classList.add('text-base', 'text-gray-600', 'leading-relaxed'));
+            proseContainer.querySelectorAll('h3').forEach(h3 => h3.classList.add('text-xl', 'font-semibold', 'mt-6', 'mb-3', 'border-b', 'pb-2', 'border-gray-200', 'dark:border-gray-700'));
+            proseContainer.querySelectorAll('p, li').forEach(el => el.classList.add('text-base', 'text-gray-600', 'dark:text-gray-400', 'leading-relaxed'));
             proseContainer.querySelectorAll('table').forEach(table => table.classList.add('w-full', 'my-4', 'border-collapse', 'text-sm'));
-            proseContainer.querySelectorAll('th, td').forEach(cell => cell.classList.add('border', 'p-2'));
-            proseContainer.querySelectorAll('th').forEach(th => th.classList.add('bg-gray-100'));
+            proseContainer.querySelectorAll('th, td').forEach(cell => cell.classList.add('border', 'dark:border-gray-600', 'p-2'));
+            proseContainer.querySelectorAll('th').forEach(th => th.classList.add('bg-gray-100', 'dark:bg-gray-700'));
         }
 
         async function apiCall(url, options = {}) {
-            try {
-                const response = await fetch(url, options);
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({'error': 'An unknown error occurred.'}));
-                    throw new Error(errorData.error);
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json'
                 }
-                if (response.status === 204) return null;
+            };
+            const mergedOptions = { ...defaultOptions, ...options };
+
+            try {
+                const response = await fetch(url, mergedOptions);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: 'An unknown error occurred' }));
+                    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                }
                 return await response.json();
             } catch (error) {
                 console.error(`API call to ${url} failed:`, error);
@@ -329,41 +401,19 @@
                 throw error;
             }
         }
-        
-        async function fetchAnalysis(word, forceReanalyze = false) {
+
+        async function fetchAnalysis(word, force = false) {
             showSkeletonLoader();
-            const url = forceReanalyze ? '/reanalyze' : '/analyze';
-            const formData = new FormData();
-            formData.append('word', word);
-            
             try {
-                const data = await apiCall(url, { method: 'POST', body: formData });
-                const htmlContent = forceReanalyze ? marked.parse(data.analysis) : data.analysis;
-                displayAnalysis(word, htmlContent);
+                const data = await apiCall(`/api/analyze/${word}?force=${force}`);
+                displayAnalysis(word, marked.parse(data.analysis));
             } catch (error) {
-                 analysisContainer.innerHTML = `<p class="text-red-500">Failed to fetch analysis. Check API keys and server logs.</p>`;
-            }
-        }
-        
-        async function playPronunciation() {
-            if (!currentWord) return;
-            const button = document.getElementById('play-pronunciation-btn');
-            button.disabled = true;
-            try {
-                const response = await fetch(`/tts?word=${encodeURIComponent(currentWord)}`);
-                if (!response.ok) throw new Error('TTS response was not OK');
-                const audioBlob = await response.blob();
-                const audioUrl = URL.createObjectURL(audioBlob);
-                new Audio(audioUrl).play();
-            } catch (error) {
-                showToast('TTS Error', 'Could not play pronunciation.', true);
-            } finally {
-                button.disabled = false;
+                resetAnalysisView();
             }
         }
         
         async function refreshTemplateList() {
-            try {
+             try {
                 const [templates, activeTemplate] = await Promise.all([
                     apiCall('/api/templates'),
                     apiCall('/api/templates/active')
@@ -371,155 +421,163 @@
                 activeTemplateId = activeTemplate.id;
                 
                 let itemsHTML = '<div role="none">';
-                itemsHTML += '<div class="px-4 py-2 text-xs text-gray-400">Select Active Template</div>';
+                itemsHTML += '<div class="px-4 py-2 text-xs text-gray-400 dark:text-gray-500">Select Active Template</div>';
                 
                 templates.forEach(t => {
                     itemsHTML += `
-                        <a href="#" class="text-gray-700 block px-4 py-2 text-sm flex justify-between items-center hover:bg-gray-100 ${t.id === activeTemplateId ? 'bg-gray-100 font-bold' : ''}" role="menuitem" data-template-id="${t.id}">
+                        <a href="#" class="text-gray-700 dark:text-gray-300 block px-4 py-2 text-sm flex justify-between items-center hover:bg-gray-100 dark:hover:bg-gray-700 ${t.id === activeTemplateId ? 'bg-gray-100 dark:bg-gray-700 font-bold' : ''}" role="menuitem" data-template-id="${t.id}">
                             <span>${t.name}</span>
-                            <button class="p-1 rounded-full hover:bg-gray-200 edit-template-btn" data-template-id="${t.id}" title="Edit Template">
-                                <svg class="w-4 h-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V12a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                            <button class="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 edit-template-btn" data-template-id="${t.id}" title="Edit Template">
+                                <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V12a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                             </button>
                         </a>`;
                 });
 
-                itemsHTML += '<div class="border-t border-gray-100 my-1"></div>';
-                itemsHTML += `<a href="#" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" id="newTemplateBtn">Create New Template...</a>`;
+                itemsHTML += '<div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>';
+                itemsHTML += `<a href="#" class="text-gray-700 dark:text-gray-300 block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" role="menuitem" id="newTemplateBtn">Create New Template...</a>`;
                 itemsHTML += '</div>';
 
                 templateList.innerHTML = itemsHTML;
             } catch (error) {
-                showToast('Error', 'Could not refresh template list.', true);
+                console.error("Failed to refresh template list:", error);
             }
         }
 
-        function handleTemplateForm(event) {
-            const templateId = document.getElementById('templateId').value;
-            const isNew = !templateId;
-            const url = isNew ? '/api/templates' : `/api/templates/${templateId}`;
-            const method = isNew ? 'POST' : 'PUT';
+        // --- Event Listeners ---
+        homeLink.addEventListener('click', resetToInitialState);
 
-            const payload = {
-                name: document.getElementById('templateName').value,
-                content: document.getElementById('templateContent').value
-            };
-
-            apiCall(url, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            }).then(() => {
-                templateModalEl.classList.add('hidden');
-                showToast('Success', `Template ${isNew ? 'created' : 'updated'}.`);
-                refreshTemplateList();
-            });
-        }
-        
-        function openTemplateModal(templateId = null) {
-            const form = document.getElementById('templateForm');
-            const modalTitle = document.getElementById('templateModalLabel');
-            const deleteBtn = document.getElementById('deleteTemplateBtn');
-            form.reset();
-            
-            if (templateId) {
-                modalTitle.textContent = 'Edit Template';
-                deleteBtn.classList.remove('hidden');
-                deleteBtn.dataset.templateId = templateId;
-                apiCall(`/api/templates/${templateId}`).then(template => {
-                    document.getElementById('templateId').value = template.id;
-                    document.getElementById('templateName').value = template.name;
-                    document.getElementById('templateContent').value = template.content;
-                    templateModalEl.classList.remove('hidden');
-                });
-            } else {
-                modalTitle.textContent = 'Create New Template';
-                deleteBtn.classList.add('hidden');
-                document.getElementById('templateId').value = '';
-                templateModalEl.classList.remove('hidden');
+        document.getElementById('vocabularyAccordion').addEventListener('click', function(e) {
+            const button = e.target.closest('button[data-unit-index]');
+            if (button) {
+                selectUnit(parseInt(button.dataset.unitIndex, 10));
             }
-        }
+        });
 
-        document.body.addEventListener('click', function(e) {
-            if (e.target.matches('.word-item')) {
+        document.getElementById('word-list-container').addEventListener('click', function(e) {
+            const wordItem = e.target.closest('.word-item');
+            if (wordItem) {
                 document.querySelectorAll('.word-item.active').forEach(item => {
-                    item.classList.remove('active', 'bg-blue-600', 'text-white', 'shadow');
-                    item.classList.add('bg-gray-100', 'text-gray-700');
+                    item.classList.remove('active', 'bg-blue-600', 'text-white', 'shadow', 'dark:bg-blue-500', 'dark:text-white');
+                    item.classList.add('bg-gray-100', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
                 });
-                e.target.classList.add('active', 'bg-blue-600', 'text-white', 'shadow');
-                e.target.classList.remove('bg-gray-100', 'text-gray-700');
-                fetchAnalysis(e.target.dataset.word);
+                wordItem.classList.add('active', 'bg-blue-600', 'text-white', 'shadow', 'dark:bg-blue-500', 'dark:text-white');
+                wordItem.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                fetchAnalysis(wordItem.dataset.word);
             }
+        });
+
+        analysisContainer.addEventListener('click', function(e) {
             if (e.target.closest('#reanalyze-btn')) {
-                if(currentWord) fetchAnalysis(currentWord, true);
+                if (currentWord) {
+                    fetchAnalysis(currentWord, true);
+                }
             }
             if (e.target.closest('#play-pronunciation-btn')) {
-                playPronunciation();
+                if (currentWord) {
+                    const button = e.target.closest('#play-pronunciation-btn');
+                    button.classList.add('animate-pulse');
+                    const audio = new Audio(`/api/tts/${currentWord}`);
+                    audio.play();
+                    audio.onended = () => button.classList.remove('animate-pulse');
+                    audio.onerror = () => {
+                        button.classList.remove('animate-pulse');
+                        showToast('Error', 'Could not play audio.', true);
+                    }
+                }
             }
-            const accordionButton = e.target.closest('button[data-unit-index]');
-            if(accordionButton) {
-                displayWordList(accordionButton.dataset.unitIndex);
-            }
+        });
 
-            // --- New Dropdown Logic ---
-            if (e.target.closest('#manageTemplatesBtn')) {
+        document.body.addEventListener('click', function(e) {
+            // Template dropdown
+            if (manageTemplatesBtn.contains(e.target)) {
                 templateDropdownMenu.classList.toggle('hidden');
-            } else if (!e.target.closest('#template-dropdown-container')) {
+            } else if (!templateDropdownContainer.contains(e.target)) {
                 templateDropdownMenu.classList.add('hidden');
             }
-            // --- End New Dropdown Logic ---
 
-            if (e.target.matches('#newTemplateBtn')) {
-                e.preventDefault();
-                templateDropdownMenu.classList.add('hidden');
-                openTemplateModal();
-            }
+            // Template actions
             if (e.target.closest('.edit-template-btn')) {
-                e.stopPropagation();
                 e.preventDefault();
-                templateDropdownMenu.classList.add('hidden');
-                openTemplateModal(e.target.closest('.edit-template-btn').dataset.templateId);
-            }
-            const link = e.target.closest('a[data-template-id]');
-            if (link && !e.target.closest('.edit-template-btn')) {
+                const btn = e.target.closest('.edit-template-btn');
+                openTemplateModal(btn.dataset.templateId);
+            } else if (e.target.id === 'newTemplateBtn') {
                  e.preventDefault();
-                 const templateId = link.dataset.templateId;
-                 apiCall('/api/templates/active', {
-                     method: 'POST',
-                     headers: { 'Content-Type': 'application/json' },
-                     body: JSON.stringify({id: parseInt(templateId)})
-                 }).then(refreshTemplateList);
+                openTemplateModal();
+            } else if (e.target.closest('a[data-template-id]')) {
+                 e.preventDefault();
+                 const link = e.target.closest('a[data-template-id]');
+                 apiCall(`/api/templates/active/${link.dataset.templateId}`, { method: 'POST' }).then(refreshTemplateList);
             }
         });
         
         document.getElementById('saveTemplateBtn').addEventListener('click', handleTemplateForm);
         document.getElementById('deleteTemplateBtn').addEventListener('click', function() {
             const templateId = this.dataset.templateId;
-            if (confirm('Are you sure you want to delete this template?')) {
-                apiCall(`/api/templates/${templateId}`, { method: 'DELETE' }).then(() => {
-                    templateModalEl.classList.add('hidden');
-                    showToast('Success', 'Template deleted.');
-                    if(currentWord) fetchAnalysis(currentWord, false);
-                    refreshTemplateList();
+            if (templateId && confirm('Are you sure you want to delete this template?')) {
+                apiCall(`/api/templates/${templateId}`, { method: 'DELETE' })
+                    .then(() => {
+                        showToast('Success', 'Template deleted successfully.');
+                        closeTemplateModal();
+                        refreshTemplateList();
+                    });
+            }
+        });
+        document.getElementById('closeTemplateModalBtn').addEventListener('click', closeTemplateModal);
+        document.getElementById('cancelTemplateModalBtn').addEventListener('click', closeTemplateModal);
+        
+        async function openTemplateModal(templateId = null) {
+            document.getElementById('templateForm').reset();
+            const modalLabel = document.getElementById('templateModalLabel');
+            const deleteBtn = document.getElementById('deleteTemplateBtn');
+
+            if (templateId) {
+                modalLabel.textContent = 'Edit Template';
+                deleteBtn.classList.remove('hidden');
+                deleteBtn.dataset.templateId = templateId;
+                
+                try {
+                    const template = await apiCall(`/api/templates/${templateId}`);
+                    document.getElementById('templateId').value = template.id;
+                    document.getElementById('templateName').value = template.name;
+                    document.getElementById('templateContent').value = template.content;
+                } catch (error) {
+                    return; // error is shown by apiCall
+                }
+            } else {
+                modalLabel.textContent = 'Create New Template';
+                deleteBtn.classList.add('hidden');
+                document.getElementById('templateId').value = '';
+            }
+            templateModalEl.classList.remove('hidden');
+        }
+
+        function closeTemplateModal() {
+            templateModalEl.classList.add('hidden');
+        }
+
+        async function handleTemplateForm() {
+            const id = document.getElementById('templateId').value;
+            const name = document.getElementById('templateName').value;
+            const content = document.getElementById('templateContent').value;
+            const url = id ? `/api/templates/${id}` : '/api/templates';
+            const method = id ? 'PUT' : 'POST';
+
+            try {
+                await apiCall(url, {
+                    method,
+                    body: JSON.stringify({ name, content })
                 });
+                showToast('Success', `Template ${id ? 'updated' : 'created'} successfully.`);
+                closeTemplateModal();
+                refreshTemplateList();
+            } catch(error) {
+                // error toast is already shown by apiCall
             }
-        });
-
-        // --- New Modal Close Logic ---
-        document.getElementById('closeTemplateModalBtn').addEventListener('click', () => templateModalEl.classList.add('hidden'));
-        document.getElementById('cancelTemplateModalBtn').addEventListener('click', () => templateModalEl.classList.add('hidden'));
-        document.getElementById('templateModal').addEventListener('click', (e) => {
-            if (e.target.id === 'templateModal') {
-                templateModalEl.classList.add('hidden');
-            }
-        });
-        // --- End New Modal Close Logic ---
-
-        homeLink.addEventListener('click', () => {
-            resetToInitialState();
-        });
-
+        }
+        
+        // Initial setup
         refreshTemplateList();
-        // Add a simple transition to toast
+        
         toastEl.style.transition = 'transform 0.3s ease-in-out, opacity 0.3s ease-in-out';
         toastEl.style.transform = 'translateX(100%)';
         toastEl.style.opacity = '0';

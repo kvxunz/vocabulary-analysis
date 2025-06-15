@@ -134,63 +134,46 @@ def index():
     vocabulary_data = parse_vocabulary_file('type.txt')
     return render_template('index.html', units=vocabulary_data)
 
-@app.route('/analyze', methods=['POST'])
-def analyze():
-    word = request.form['word']
+@app.route('/api/analyze/<word>', methods=['GET'])
+def analyze_word_route(word):
+    force_reanalyze = request.args.get('force', 'false').lower() == 'true'
     db = get_db()
-    
-    cached = db.execute('SELECT analysis FROM word_cache WHERE word = ?', (word,)).fetchone()
-    if cached:
-        analysis_html = markdown.markdown(cached['analysis'], extensions=['fenced_code', 'tables'])
-        return jsonify({'analysis': analysis_html})
+
+    if not force_reanalyze:
+        cached = db.execute('SELECT analysis FROM word_cache WHERE word = ?', (word,)).fetchone()
+        if cached and cached['analysis']:
+            return jsonify({'analysis': cached['analysis']})
 
     active_template = db.execute('SELECT content FROM prompt_templates WHERE id = (SELECT active_template_id FROM app_settings WHERE id = 1)').fetchone()
     if not active_template:
         return jsonify({'error': 'No active template found.'}), 400
 
-    analysis_text, error = get_word_analysis(word, active_template['content'])
+    analysis_text, error = get_word_analysis(word, active_template['content'], force_reanalyze=force_reanalyze)
     if error:
         return jsonify({'error': error}), 500
     
     db.execute('INSERT OR REPLACE INTO word_cache (word, analysis) VALUES (?, ?)', (word, analysis_text))
     db.commit()
     
-    analysis_html = markdown.markdown(analysis_text, extensions=['fenced_code', 'tables'])
-    return jsonify({'analysis': analysis_html})
-
-@app.route('/reanalyze', methods=['POST'])
-def reanalyze():
-    word = request.form['word']
-    db = get_db()
-    active_template = db.execute('SELECT content FROM prompt_templates WHERE id = (SELECT active_template_id FROM app_settings WHERE id = 1)').fetchone()
-    if not active_template:
-        return jsonify({'error': 'No active template found.'}), 400
-
-    analysis_text, error = get_word_analysis(word, active_template['content'], force_reanalyze=True)
-    if error:
-        return jsonify({'error': error}), 500
-    
-    db.execute('INSERT OR REPLACE INTO word_cache (word, analysis) VALUES (?, ?)', (word, analysis_text))
-    db.commit()
-    
-    # For re-analysis, frontend expects raw markdown to be parsed by `marked.js`
     return jsonify({'analysis': analysis_text})
 
-@app.route('/tts', methods=['GET'])
-def tts():
-    word = request.args.get('word')
-    if not word: 
+@app.route('/api/tts/<word>', methods=['GET'])
+def tts_route(word):
+    if not word:
         return jsonify({"error": "No word provided"}), 400
-    
+
     if not OPENAI_API_KEY:
         return jsonify({"error": "OpenAI TTS service not configured"}), 503
 
+    # Sanitize word to create a valid filename
     filename = "".join(c for c in word if c.isalnum()) + '.mp3'
     filepath = os.path.join(AUDIO_CACHE_DIR, filename)
 
+    # Return cached file if it exists
     if os.path.exists(filepath):
         return send_from_directory(AUDIO_CACHE_DIR, filename)
 
+    # If not cached, generate it
     try:
         client = OpenAI(api_key=OPENAI_API_KEY)
         response = client.audio.speech.create(
@@ -198,15 +181,11 @@ def tts():
             voice="alloy",
             input=word
         )
-        
-        # Stream the audio to the file
         response.stream_to_file(filepath)
-        
         return send_from_directory(AUDIO_CACHE_DIR, filename)
     except Exception as e:
-        # Log the actual error for debugging
         logging.error(f"OpenAI TTS generation failed for word '{word}': {e}")
-        return jsonify({"error": f"TTS generation failed"}), 500
+        return jsonify({"error": "TTS generation failed"}), 500
 
 # --- API Routes for Template Management ---
 @app.route('/api/templates', methods=['GET'])
